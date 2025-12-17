@@ -1,0 +1,18 @@
+{
+"news_train_cleaned": {
+  "file_name": "news_train_cleaned.jsonl",
+  "columns": {
+    "prompt": "text"
+  }
+},
+"news_train_augmented": {
+  "file_name": "news_train_augmented.jsonl",
+  "columns": {
+    "prompt": "text"
+  }
+},
+"news_test": {
+  "file_name": "news_test.jsonl"
+}
+}
+

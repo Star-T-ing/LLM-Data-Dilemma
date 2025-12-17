@@ -1,0 +1,11 @@
+cache_dir: null
+hub_name: huggingface
+lang: zh
+last_model: Qwen2.5-3B
+path_dict:
+  Chinese-Llama-2-1.3B: /home/remote1/lvshuyang/Models/hfl/chinese-llama-2-1.3b
+  Qwen2.5-3B: /home/remote1/lvshuyang/Models/Qwen/Qwen2.5-3B
+  Qwen2.5-Omni-3B: /home/remote1/lvshuyang/Models/Qwen/Qwen2.5-Omni-3B
+  Qwen2.5-Omni-7B: /home/remote1/lvshuyang/Models/Qwen/Qwen2.5-Omni-7B
+  Qwen3-0.6B-Thinking: /home/remote1/lvshuyang/Models/Qwen/Qwen3-0.6B
+  Qwen3-VL-8B-Thinking: /home/remote1/lvshuyang/Models/Qwen/Qwen3-VL-8B-Thinking
