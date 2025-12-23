@@ -9,6 +9,7 @@ import random
 import json
 import hashlib
 import urllib
+from sentence_transformers import SentenceTransformer, util
 
 from tencentcloud.common import credential
 from tencentcloud.common.profile.client_profile import ClientProfile
@@ -20,6 +21,8 @@ from alibabacloud_alimt20181012.client import Client as alimt20181012Client
 from alibabacloud_tea_openapi import models as open_api_models
 from alibabacloud_alimt20181012 import models as alimt_20181012_models
 from alibabacloud_tea_util import models as util_models
+
+threshold = 0.8
 
 def aliyun_translate(q, src_lang="zh", tgt_lang="en"):
     ACCESS_KEY_ID = 'Access_key_id'
@@ -108,6 +111,20 @@ def baidu_translate(q, src_lang="zh", tgt_lang="en"):
             httpClient.close()
     
 
+def cosine_simalarity(source, target):
+    model = SentenceTransformer('shibing624/text2vec-base-chinese')
+
+    emb1 = model.encode(source, convert_to_tensor=True)
+    emb2 = model.encode(target, convert_to_tensor=True)
+    similarity = util.cos_sim(emb1, emb2).item()
+    similarity = round(similarity, 4)  
+    
+    if similarity < threshold:
+        return None
+    else:
+        return target
+    
+
 def back_translate(sample, api = 'tencent', src_lang="zh", tgt_lang="en"):
     """
     q: 输入的文本
@@ -129,7 +146,7 @@ def back_translate(sample, api = 'tencent', src_lang="zh", tgt_lang="en"):
         time.sleep(1)
         target = aliyun_translate(en, tgt_lang, src_lang)
         time.sleep(1)
-    return target
+    return cosine_simalarity(sample, target)
 
 
 if __name__ == '__main__':
