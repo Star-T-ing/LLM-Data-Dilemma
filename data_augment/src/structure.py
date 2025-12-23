@@ -2,61 +2,90 @@ import os
 from openai import OpenAI
 
 # 从环境变量中获取您的API KEY，配置方法见：https://www.volcengine.com/docs/82379/1399008
-api_key = os.getenv('ARK_API_KEY')
+# api_key = os.getenv('ARK_API_KEY')
+api_key = os.getenv('DOUBAO_APIKEY')
 
-def structure(input_text, model):
-    news_length = len(input_text)
+def structure(title: str, body: str, model: str):
+    news_length = len(body)
+    prompt_structure = f'''
+    你是一名信息抽取系统，负责从中文新闻文本中提取结构化事实信息。
+
+    请严格依据原文内容进行抽取，不要进行改写、总结、推测或补充，
+    所有信息必须能够在原文中找到明确依据。
+
+    【抽取要求】
+    1. 仅输出结构化结果，不要输出任何解释性文字
+    2. 若某一字段在原文中不存在，请置为空字符串
+    3. 保持字段语义准确，避免冗余描述
+
+    【输出格式（JSON）】
+    {
+        "event_type": "",
+        "time": "",
+        "location": "",
+        "subjects": [],
+        "objects": [],
+        "key_actions": "",
+        "cause": "",
+        "result": "",
+        "additional_details": ""
+    }
+
+    【新闻正文】
+    {body}
+    '''
+    
     client = OpenAI(
-        # 此为默认路径，您可根据业务所在地域进行配置
         base_url="https://ark.cn-beijing.volces.com/api/v3",
-        # 从环境变量中获取您的 API Key。此为默认方式，您可根据需要进行修改
         api_key=api_key,
     )
 
     structure = client.chat.completions.create(
-        # 指定您创建的方舟推理接入点 ID，此处已帮您修改为您的推理接入点 ID
         model=model,
         messages=[
-            {
-                "role": "system",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": "结构化输入的文本"
-                    }
-                ]
-            },
             {
                 "role": "user",
                 "content": [
                     {
                         "type": "text", 
-                        "text": input_text
+                        "text": prompt_structure
                     }
                 ]
             }
         ],
+        response_format={"type": "json_object"}
     )
 
-    structure_text = structure.choices[0].message.content
+    structure_format = structure.choices[0].message.content
+    prompt_regenerate = f'''
+        你是一名专业的中文新闻编辑。
+        请根据给定的结构化新闻信息，生成一篇完整、通顺的新闻正文。
+        生成内容必须严格基于提供的信息，不得引入任何原始结构中未包含的新事实。
+
+        【生成要求】
+        1. 文本类型：新闻正文
+        2. 输出语言：中文
+        3. 保持新闻客观性，不加入评论或主观判断
+        4. 不逐条照搬结构字段，应进行自然语言组织
+        5. 不得编造时间、地点、人物或事件细节
+
+        【长度要求】
+        生成文本长度与常规新闻报道相当（约 {news_length * 0.8}–{news_length * 1.2} 字）
+
+        【结构化新闻信息（JSON）】
+        {structure_format}
+
+        【生成的新闻正文】
+    '''
     rewrite = client.chat.completions.create(
         model=model,
         messages=[
-            {
-                "role": "system",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": f"根据输入的结构化文本，写一篇新闻，字数为{news_length}"
-                    }
-                ]
-            },
             {
                 "role": "user",
                 "content": [
                     {
                         "type": "text",
-                        "text": structure_text
+                        "text": prompt_regenerate
                     },
                 ],
             }
@@ -66,5 +95,4 @@ def structure(input_text, model):
     return rewrite.choices[0].message.content
 
 if __name__ == "__main__":
-    input_text = "“我的淘宝旺旺经常会收到网店的宣传消息”“我卖纸箱卖了1年才到皇冠，他们刷1个月不到，就皇冠了，心理严重失衡啊”……由于部分用户涉及重度虚假交易以及滥发宣传信息，记者昨日获悉，淘宝网目前开始加大力度查处不诚信卖家，目前，查封的淘宝网店数已近3000家。 据淘宝方面透露，该网站的第二代安全稽查监控系统已经正式上线，将实时对虚假交易行为进行更有效的监控，最近再次查封了691个炒作账户，截至目前，已经有2989家店被查封，查封的原因为这批网店涉及重度虚假交易。 据了解，除了重度虚假交易被查封外，网上发送垃圾信息也将成为打击重点。淘宝公告显示，由于部分用户长期、大量地发送垃圾消息，对阿里旺旺用户造成了严重的骚扰，淘宝近日永久封杀了川味坊等4家网店。"
-    print(structure(input_text))
+    pass
